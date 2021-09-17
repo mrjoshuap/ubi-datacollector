@@ -48,9 +48,9 @@ apk_sha1=18d9fdbb30a111d06a61596b4eefc0fa25e54d9b
 pkgname=lacework
 download_url="https://s3-us-west-2.amazonaws.com/www.lacework.net/download/${commit_hash}"
 #max number of retries for install
-max_retries=5
+max_retries=1
 #retry install after x seconds
-max_wait=60
+max_wait=5
 
 ARG1=$1
 usedocker=no
@@ -551,7 +551,7 @@ install_pkg() {
 				install_pkg_cmd="dnf -y install ${pkg_tmp_filename}"
 				install_retries
 			else
-				echo "Using microdnf"
+				echo "Using rpm"
 				set +e
 				microdnf repolist | grep ^epel
 				disable_epel=$?
@@ -560,7 +560,7 @@ install_pkg() {
 				else
 					disable_epel=""
 				fi
-				install_pkg_cmd="microdnf install ${disable_epel} -y ${pkg_tmp_filename}"
+				install_pkg_cmd="rpm -i ${pkg_tmp_filename}"
 				install_retries
 			fi
 		;;
@@ -665,7 +665,7 @@ do_install() {
 
 	pkg_fullname=''
 	download_pkg
-	install_signed_rpm
+	install_pkg
 
 	echo "Lacework successfully installed"
 }
