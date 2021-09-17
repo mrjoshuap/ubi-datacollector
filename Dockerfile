@@ -6,7 +6,8 @@ ENV DATACOLLECTOR_PKG_FULLNAME="${pkgname}-${version}-1.${rpm_pkg_suffix}.rpm"
 
 COPY install.sh /usr/local/bin/install.sh
 
-RUN chmod +x /usr/local/bin/install.sh \
-  && /usr/local/bin/install.sh
+RUN chmod +x /usr/local/bin/install.sh
+
+RUN /usr/local/bin/install.sh
 
 CMD /bin/bash
