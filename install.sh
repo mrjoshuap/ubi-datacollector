@@ -489,7 +489,7 @@ install_signed_rpm() {
 	( set -x; $sh_c "sleep 3; \
 		curl -sSL ${download_url}/latest/RPMS/${rpm_pkg_suffix}/lacework-prod.repo > /tmp/lacework-prod.repo.$$;\
 		mv /tmp/lacework-prod.repo.$$ /etc/yum.repos.d/lacework-prod.repo; \
-		yum ${disable_epel} -y install ${pkg_tmp_filename}")
+		microdnf install -y ${disable_epel} ${pkg_tmp_filename}")
 }
 
 install_retries() {
@@ -665,7 +665,7 @@ do_install() {
 
 	pkg_fullname=''
 	download_pkg
-	install_pkg
+	install_signed_rpm
 
 	echo "Lacework successfully installed"
 }
