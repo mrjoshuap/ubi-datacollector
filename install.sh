@@ -661,7 +661,7 @@ do_install() {
 
 	echo "Installing on  $lsb_dist ($dist_version)"
 
-	write_config $LaceworkAccessToken
+	write_config
 
 	pkg_fullname=''
 	download_pkg

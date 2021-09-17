@@ -7,7 +7,6 @@ COPY install.sh /usr/local/bin/install.sh
 
 RUN chmod +x /usr/local/bin/install.sh
 
-RUN export LaceworkAccessToken=${LACEWORK_ACCESS_TOKEN} \
-    && /usr/local/bin/install.sh -U "${LACEWORK_SERVER_URL}"
+RUN /usr/local/bin/install.sh "${LACEWORK_ACCESS_TOKEN}" -U "${LACEWORK_SERVER_URL}"
 
 CMD /bin/bash
