@@ -7,10 +7,11 @@ data:
     {
       "tokens": {
         "AccessToken":"e8cfef21e694160b5e7a7a60c7d77a851d15eac0f81d683006a9424d"
-        },
-        "tags":{
-          "Env":"k8s"
-        },
-        "serverurl":"https://api.lacework.net",
-        "crioruntime": "enable"
-        }
+      },
+      "tags":{
+        "Env":"k8s",
+        "KubernetesCluster":"markfink"
+      },
+      "serverurl":"https://api.lacework.net",
+      "crioruntime":"enable"
+    }
