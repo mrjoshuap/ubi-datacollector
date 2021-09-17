@@ -10,7 +10,7 @@ data:
       },
       "tags":{
         "Env":"k8s",
-        "KubernetesCluster":"markfink"
+        "KubernetesCluster":"mrjoshuap-crc"
       },
       "serverurl":"https://api.lacework.net",
       "crioruntime":"enable"

@@ -6,6 +6,7 @@ metadata:
   labels:
     tier: monitoring
     app: lacework-agent
+  namespace: lacework
 spec:
   selector:
     matchLabels:
@@ -23,9 +24,10 @@ spec:
       terminationGracePeriodSeconds: 20
       hostPID: true
       hostNetwork: true
+      serviceAccountName: lacework
       containers:
         - name: lacework
-          image: tester/ubi-datacollector
+          image: quay.io/themrjoshuap/ubi-datacollector:latest
           imagePullPolicy: Always
           resources:
             requests:
