@@ -13,4 +13,4 @@ RUN /usr/local/bin/install.sh "${LACEWORK_ACCESS_TOKEN}" -U "${LACEWORK_SERVER_U
 
 USER root
 
-CMD /bin/bash -c "/var/lib/lacework/datacollector"
+CMD "/var/lib/lacework/datacollector ${LWDC_OPTS}"
