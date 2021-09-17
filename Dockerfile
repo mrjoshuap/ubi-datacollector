@@ -11,4 +11,6 @@ RUN chmod +x /usr/local/bin/install.sh
 
 RUN /usr/local/bin/install.sh "${LACEWORK_ACCESS_TOKEN}" -U "${LACEWORK_SERVER_URL}"
 
-CMD /bin/bash -c "while true; do echo ping; sleep 3; done"
+USER root
+
+CMD /bin/bash -c "/var/lib/lacework/datacollector"
