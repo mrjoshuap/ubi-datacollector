@@ -1,7 +1,7 @@
 FROM registry.redhat.io/ubi8/ubi-minimal
 
 ENV LACEWORK_ACCESS_TOKEN INVALID
-ENV LACEWORK_SERVER_URL HTTPS://127.0.0.1/
+ENV LACEWORK_SERVER_URL https://fictional.lacework.net
 
 COPY install.sh /usr/local/bin/install.sh
 
