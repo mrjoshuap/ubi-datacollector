@@ -4,9 +4,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 #     Unless required by applicable law or agreed to in writing, software
 #     distributed under the License is distributed on an "AS IS" BASIS,
 #     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +16,7 @@ set -e
 
 #
 # This script is meant for quick & easy install via:
-#    1. sudo sh -c "$(curl -sSL https://s3-us-west-2.amazonaws.com/www.lacework.net/download/4.3.0.5146_2021-09-13_master_36599af652b771c16f9e64f4cc3bf5d6ea8fe3b0/install.sh)" 
+#    1. sudo sh -c "$(curl -sSL https://s3-us-west-2.amazonaws.com/www.lacework.net/download/4.3.0.5146_2021-09-13_master_36599af652b771c16f9e64f4cc3bf5d6ea8fe3b0/install.sh)"
 #    or
 #    1. "curl -sSL https://s3-us-west-2.amazonaws.com/www.lacework.net/download/4.3.0.5146_2021-09-13_master_36599af652b771c16f9e64f4cc3bf5d6ea8fe3b0/install.sh > /tmp/install.sh"
 #    2. sudo sh /tmp/install.sh -U <serverurl>
@@ -81,7 +81,7 @@ check_bash() {
 
 			    Please run the installer using one of the following options:
 
-			        1. sudo sh -c "\$(curl -sSL ${download_url}/install.sh)" 
+			        1. sudo sh -c "\$(curl -sSL ${download_url}/install.sh)"
 
 			    OR a two steps process to download the installer to /tmp and run it from there.
 
@@ -539,7 +539,7 @@ install_pkg() {
                         # On end-of-release versions (E.g. 13.10) apt-get update fails
 
 			set +e
-			apt_get_update 
+			apt_get_update
 			install_pkg_cmd="dpkg -i ${pkg_tmp_filename}"
 			install_retries
 		;;
@@ -550,16 +550,16 @@ install_pkg() {
 				install_pkg_cmd="dnf -y install ${pkg_tmp_filename}"
 				install_retries
 			else
-				echo "Using yum"
+				echo "Using microdnf"
 				set +e
-				yum repolist | grep ^epel
+				microdnf repolist | grep ^epel
 				disable_epel=$?
 				if [ "$disable_epel" = "0" ]; then
 					disable_epel="--disablerepo=epel"
 				else
 					disable_epel=""
 				fi
-				install_pkg_cmd="yum ${disable_epel} -y install ${pkg_tmp_filename}"
+				install_pkg_cmd="microdnf ${disable_epel} -y install ${pkg_tmp_filename}"
 				install_retries
 			fi
 		;;
@@ -627,7 +627,7 @@ write_config() {
 do_install() {
 	check_bash
 	check_x64
-	
+
 	sh_c='sh -c'
 	shell_prefix
 
@@ -704,7 +704,7 @@ while getopts "SFOhU:" arg; do
          echo "server url not provided"
          exit 1
       fi
-	
+
       #in case of a mismatch the exit status of below expression is 1, and set -e will make the script exit.
       #hence the '|| true' at the end.
       match=$(echo "${OPTARG}" | grep -E "^https://.*\.lacework.net$") || true
