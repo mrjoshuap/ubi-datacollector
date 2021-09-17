@@ -560,7 +560,7 @@ install_pkg() {
 				else
 					disable_epel=""
 				fi
-				install_pkg_cmd="microdnf ${disable_epel} -y install ${pkg_tmp_filename}"
+				install_pkg_cmd="microdnf install ${disable_epel} -y ${pkg_tmp_filename}"
 				install_retries
 			fi
 		;;
