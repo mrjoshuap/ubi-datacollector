@@ -6,6 +6,6 @@ ENV DATACOLLECTOR_PKG_FULLNAME="${pkgname}-${version}-1.${rpm_pkg_suffix}.rpm"
 
 RUN cd /tmp \
   && curl -OsSL https://s3-us-west-2.amazonaws.com/www.lacework.net/download/${DATACOLLECTOR_COMMIT_HASH}/install.sh \
-  && chmod +x /tmp/install.sh
+  && chmod +x /tmp/install.sh \
   && /tmp/install.sh
 
