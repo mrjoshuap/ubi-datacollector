@@ -17,82 +17,82 @@ spec:
       labels:
         name: lacework
     spec:
-      tolerations: 
+      tolerations:
         - key: node-role.kubernetes.io/master
           effect: NoSchedule
       terminationGracePeriodSeconds: 20
       hostPID: true
       hostNetwork: true
       containers:
-      - name: lacework
-        image: lacework/datacollector
-        imagePullPolicy: Always
-        resources:
-          requests:
-            cpu: "100m"
-            memory: "512Mi"
-        securityContext:
-          privileged: true
-        volumeMounts:
-          - name: cfgmap
-            mountPath: /var/lib/lacework/config
-          - name: dev
-            mountPath: /dev
-          - name: run-sock
-            mountPath: /var/run/docker.sock
-          - name: run-pid
-            mountPath: /var/run/docker.pid
-          - name: sys
-            mountPath: /sys
-          - name: log
-            mountPath: /var/log
-          - name: passwd
-            mountPath: /etc/passwd
-            readOnly: true
-          - name: group
-            mountPath: /etc/group
-            readOnly: true
-          - name: hostlacework
-            mountPath: /var/lib/lacework/collector
-          - name: hostroot
-            mountPath: /laceworkfim
-            readOnly: true
-          - name: podinfo
-            mountPath: /etc/podinfo
+        - name: lacework
+          image: tester/ubi-datacollector
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "512Mi"
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: cfgmap
+              mountPath: /var/lib/lacework/config
+            - name: dev
+              mountPath: /dev
+            - name: run-sock
+              mountPath: /var/run/docker.sock
+            - name: run-pid
+              mountPath: /var/run/docker.pid
+            - name: sys
+              mountPath: /sys
+            - name: log
+              mountPath: /var/log
+            - name: passwd
+              mountPath: /etc/passwd
+              readOnly: true
+            - name: group
+              mountPath: /etc/group
+              readOnly: true
+            - name: hostlacework
+              mountPath: /var/lib/lacework/collector
+            - name: hostroot
+              mountPath: /laceworkfim
+              readOnly: true
+            - name: podinfo
+              mountPath: /etc/podinfo
       volumes:
         - name: dev
           hostPath:
-              path: /dev
+            path: /dev
         - name: run-sock
           hostPath:
-              path: /var/run/docker.sock
+            path: /var/run/docker.sock
         - name: run-pid
           hostPath:
-              path: /var/run/docker.pid
+            path: /var/run/docker.pid
         - name: sys
           hostPath:
-              path: /sys
+            path: /sys
         - name: log
           hostPath:
-              path: /var/log
+            path: /var/log
         - name: passwd
           hostPath:
-              path: /etc/passwd
+            path: /etc/passwd
         - name: group
           hostPath:
-              path: /etc/group
+            path: /etc/group
         - name: hostroot
           hostPath:
-              path: /
+            path: /
         - name: hostlacework
           hostPath:
-              path: /var/lib/lacework/collector
+            path: /var/lib/lacework/collector
         - name: cfgmap
           configMap:
             name: lacework-config
             items:
-            - key: config.json
-              path: config.json
+              - key: config.json
+                path: config.json
         - name: podinfo
           downwardAPI:
             items:
