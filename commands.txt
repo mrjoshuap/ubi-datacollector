@@ -7,14 +7,25 @@ crc config set consent-telemetry yes
 crc config set pull-secret-file /Users/jpreston/.crc_pull_secret.json
 crc start
 eval $(crc oc-env)
-oc login -u developer https://api.crc.testing:6443
+
 oc login -u kubeadmin -p 'lacework$' https://api.crc.testing:6443
 
-oc new-project lacework
-oc create -f lacework-cfg-k8s.yaml
-oc create -f lacework-k8s.yaml
+oc new-project lacework --display-name="Lacework" --description="Project and namespace for the Lacework Data Collector Agent"
 
+#oc create -f lacework-sa.yml
+oc create serviceaccount lacework -n lacework
+
+#oc create -f lacework-scc.yml
 oc adm policy add-scc-to-user privileged -z lacework
-oc edit scc privileged
+
+oc adm policy add-scc-to-user hostaccess system:serviceaccount:lacework:lacework
+oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:lacework:lacework
+oc adm policy add-scc-to-user hostnetwork system:serviceaccount:lacework:lacework
+
+#oc create -f lacework-is.yml
+oc import-image ubi-datacollector:latest --from=quay.io/themrjoshuap/ubi-datacollector:latest -n lacework --confirm
+
+oc create -n lacework -f lacework-cfg-k8s.yaml
+oc create -n lacework -f lacework-k8s.yaml
 
 oc get all -n lacework
