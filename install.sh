@@ -34,20 +34,21 @@ fi
 SYSTEMD_OVERRIDE=no
 STRICT_MODE=no
 FIM_ENABLE=enable
+
 # Agent version
-version=4.3.0.5146
-commit_hash=4.3.0.5146_2021-09-13_master_36599af652b771c16f9e64f4cc3bf5d6ea8fe3b0
+version=4.3.0.5216
+commit_hash=4.3.0.5216_2021-09-16_master_39524df4acaa71c119236b405a1510c8217c44f2
 # These variables are deprecated and will be removed in the next release
-deb_sha1=56ed0e210d855834ce914089f3468abdaec89201
-rpm_sha1=c26ef40aae3452eca8acd2342c1ac53df1dbd68c
+deb_sha1=f5a80071da7e9313139d5e985e8eb77205778099
+rpm_sha1=11a222ae245a2b0d99747ef18d91d9d4ec097432
 dc_sha1=
 dc_musl_sha1=
 
-amd64_deb_sha1=56ed0e210d855834ce914089f3468abdaec89201
-amd64_rpm_sha1=c26ef40aae3452eca8acd2342c1ac53df1dbd68c
-arm64_deb_sha1=516a5d1854af3581238f00ce014aa2345bb20e6c
-arm64_rpm_sha1=f3ff905e083e3c7f8e73790976a93633f4e1afea
-apk_sha1=18d9fdbb30a111d06a61596b4eefc0fa25e54d9b
+amd64_deb_sha1=f5a80071da7e9313139d5e985e8eb77205778099
+amd64_rpm_sha1=11a222ae245a2b0d99747ef18d91d9d4ec097432
+arm64_deb_sha1=91123e4bdaa4448239e3fd714fccadaeff28cd4f
+arm64_rpm_sha1=1c7d6748c6813645527df2eca0e8d0049435ca47
+apk_sha1=85a9d38c336719e41a56948fa100683b9e092ac3
 
 pkgname=lacework
 download_url="https://s3-us-west-2.amazonaws.com/www.lacework.net/download/${commit_hash}"
