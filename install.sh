@@ -17,7 +17,6 @@ set -e
 if [ -n "${DEBUG}" ]; then
 	echo "Debug mode ON"
 	set -x
-	exit
 fi
 
 #
