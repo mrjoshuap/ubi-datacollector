@@ -13,4 +13,4 @@ USER root
 RUN /usr/local/bin/install.sh ${LACEWORK_ACCESS_TOKEN:-FICTIONAL-ACCESS-TOKEN} -U ${LACEWORK_SERVER_URL:-https://fictional.lacework.net} \
         && rm -f /usr/local/bin/install.sh /var/lib/lacework/config/config.json
 
-ENTRYPOINT ["/bin/sh","-c","/var/lib/lacework/datacollector"]
+ENTRYPOINT ["/var/lib/lacework/datacollector"]
