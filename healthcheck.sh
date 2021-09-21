@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ ! -f /var/lib/lacework/datacollector.pid ]; then
-    echo "Not running (no PID file)"
+    echo "Not running (no pid file)"
     exit 1
 fi
 
