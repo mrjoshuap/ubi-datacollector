@@ -6,6 +6,7 @@ ARG LACEWORK_SERVER_URL
 RUN microdnf update -y && rm -rf /var/cache/yum
 
 COPY install.sh /usr/local/bin/install.sh
+COPY healthcheck.sh /usr/local/bin/healthcheck.sh
 
 USER root
 
