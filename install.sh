@@ -14,6 +14,12 @@
 #     limitations under the License.
 set -e
 
+if [ -n "${DEBUG}" ]; then
+	echo "Debug mode ON"
+	set -x
+	exit
+fi
+
 #
 # This script is meant for quick & easy install via:
 #    1. sudo sh -c "$(curl -sSL https://s3-us-west-2.amazonaws.com/www.lacework.net/download/4.3.0.5146_2021-09-13_master_36599af652b771c16f9e64f4cc3bf5d6ea8fe3b0/install.sh)"
