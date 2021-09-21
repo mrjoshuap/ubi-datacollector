@@ -1,7 +1,18 @@
 #!/bin/sh
 
 if [ ! -f /var/lib/lacework/datacollector.pid ]; then
-    exit -1
+    echo "Not running (no PID file)"
+    exit 1
+fi
+
+if [ ! -f /var/lib/lacework/datacollector.lock ]; then
+    echo "Not running (no lock file)"
+    exit 2
+fi
+
+if [ ! -e /var/lib/lacework/datacollector.sock ]; then
+    echo "Not running (no sock file)"
+    exit 3
 fi
 
 DATACOLLECTOR_PID=$(cat /var/lib/lacework/datacollector.pid)
@@ -15,6 +26,6 @@ case $DATACOLLECTOR_STATE in
     ;;
     *)
         echo "Not running code [$DATACOLLECTOR_STATE]"
-        exit -2
+        exit 4
     ;;
 esac
