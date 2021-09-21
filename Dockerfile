@@ -1,7 +1,7 @@
 FROM registry.access.redhat.com/ubi8-minimal
 
-ENV LACEWORK_ACCESS_TOKEN FICTIONAL-ACCESS-TOKEN
-ENV LACEWORK_SERVER_URL https://fictional.lacework.net
+ARG LACEWORK_ACCESS_TOKEN
+ARG LACEWORK_SERVER_URL
 
 RUN microdnf update -y && rm -rf /var/cache/yum
 
