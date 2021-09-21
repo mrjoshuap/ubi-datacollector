@@ -9,9 +9,7 @@ COPY install.sh /usr/local/bin/install.sh
 
 USER root
 
-RUN mkdir -p /var/lib/lacework/config \
-        && touch /var/lib/lacework/config/config.json \
-        && /usr/local/bin/install.sh ${LACEWORK_ACCESS_TOKEN:-FICTIONAL-LACEWORK-ACCESS-TOKEN} -U ${LACEWORK_SERVER_URL:-https://fictional.lacework.net} \
+RUN /usr/local/bin/install.sh ${LACEWORK_ACCESS_TOKEN:-FICTIONAL-ACCESS-TOKEN} -U ${LACEWORK_SERVER_URL:-https://fictional.lacework.net} \
         && rm -f /usr/local/bin/install.sh /var/lib/lacework/config/config.json
 
 ENTRYPOINT ["/bin/sh","-c","/var/lib/lacework/datacollector"]
