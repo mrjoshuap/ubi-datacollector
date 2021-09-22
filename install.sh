@@ -258,7 +258,6 @@ install_pkg() {
 }
 
 do_install() {
-	check_bash
 	check_x64
 
 	sh_c='sh -c'
