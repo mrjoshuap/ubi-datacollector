@@ -60,6 +60,8 @@ oc new-build https://github.com/mrjoshuap/ubi-datacollector.git --strategy=docke
 oc create -n lacework -f lacework-cfg-k8s.yaml
 oc create -n lacework -f lacework-k8s.yaml
 
+oc set image-lookup daemonset/lacework-agent
+
 oc get all -n lacework
 ```
 
