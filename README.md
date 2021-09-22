@@ -3,14 +3,14 @@
 [![Docker Repository on Quay](https://quay.io/repository/themrjoshuap/ubi-datacollector/status "Docker Repository on Quay")](https://quay.io/repository/themrjoshuap/ubi-datacollector)
 
 ## About
-This is the Lacework Agent Data Collector delivered as a UBI based image.  It is intended primarily to provide support for Kubernetes distributions that prefer UBI as compared to Alpine, chiefly OpenShift / OKD and Rancher.  Additionally, Red Hat certification will strongly recommend we utilize UBI based images as they are able to provide mutual support.
+This is the Lacework Agent Data Collector delivered as a UBI based image.  It is intended primarily to provide support for Kubernetes distributions that prefer UBI as compared to Alpine, chiefly OpenShift / OKD and Rancher.  Additionally, Red Hat support will strongly recommend you utilize UBI based images as they are able to provide support for mutual customers.
 
 ## Getting Started
 
 Note, the CRC is quite heavy.  If you need the monitoring and telemetry, as I do, expect to dedicate at least 14 GiB of memory (a value of 14336) for core functionality. Increased workloads will require more memory...
 
 ### Setup Code Ready Containers
-1. Create a Red Hat Developer Account
+1. [Create a Red Hat Developer Account and download Code Ready Containers](https://developers.redhat.com/download-manager/link/3868678)
 2. Download your pull secret and Code Ready Containers
 3. Setup, configure and start Code Ready Containers
 ```
