@@ -35,11 +35,6 @@ eval $(crc oc-env)
 oc login -u kubeadmin -p 'lacework$' https://api.crc.testing:6443
 ```
 
-### Login as developer
-```
-oc login -u developer -p 'developer' https://api.crc.testing:6443
-```
-
 ### TODO:
 ```
 oc new-project lacework --display-name="Lacework" --description="Project and namespace for the Lacework Data Collector Agent"
@@ -48,25 +43,31 @@ oc create serviceaccount lacework -n lacework
 
 oc adm policy add-scc-to-user privileged -z lacework
 
-oc import-image registry.access.redhat.com/ubi8-minimal --from=registry.access.redhat.com/ubi8-minimal:latest --scheduled
+oc import-image registry.access.redhat.com/ubi8-minimal:latest --from=registry.access.redhat.com/ubi8-minimal:latest --scheduled --confirm
 
-#oc import-image ubi-datacollector --from=quay.io/themrjoshuap/ubi-datacollector:latest -n lacework --confirm
+#oc import-image lacework/ubi-datacollector:latest --from=quay.io/themrjoshuap/ubi-datacollector:latest --scheduled --confirm
+
+oc new-build https://github.com/mrjoshuap/ubi-datacollector.git --strategy=docker --to=lacework/ubi-datacollector:latest
+oc set triggers bc/ubi-datacollector --auto
+oc set triggers bc/ubi-datacollector --from-image="lacework/ubi8-minimal:latest"
 
 cp example_config.json config.json
 vi config.json
 
 oc create configmap lacework-config --from-file=config.json=config.json
 
-oc new-build https://github.com/mrjoshuap/ubi-datacollector.git --strategy=docker --to ubi-datacollector
-oc set triggers bc ubi-datacollector --from-image="ubi8-minimal:latest"
-oc set triggers bc ubi-datacollector --from-config
-
 oc create -n lacework -f lacework-k8s.yaml
 
+oc set image-lookup --all
 oc set image-lookup daemonset/lacework-agent
-oc set triggers ds lacework-agent --containers="datacollector" --from-image='lacework/ubi-datacollector:latest'
+
+oc set triggers ds/lacework-agent --auto
+oc set triggers ds/lacework-agent --from-image='lacework/ubi-datacollector:latest' --containers="datacollector" 
 
 oc get all -n lacework
+
+oc start-build ubi-datacollector --follow
+oc set image ds/lacework-agent datacollector=lacework/ubi-datacollector:latest
 ```
 
 ## To Do ... Wish List

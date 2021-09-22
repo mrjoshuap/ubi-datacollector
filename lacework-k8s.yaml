@@ -1,9 +1,6 @@
----
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  annotations:
-    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"lacework/ubi-datacollector:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"datacollector\")].image"}]'
   labels:
     app: lacework-agent
     tier: monitoring
@@ -16,15 +13,22 @@ spec:
       name: datacollector
   template:
     metadata:
-      annotations:
-        alpha.image.policy.openshift.io/resolve-names: '*'
       creationTimestamp: null
       labels:
         name: datacollector
     spec:
       containers:
-      - image: ubi-datacollector
+      - image: lacework/ubi-datacollector:latest
         imagePullPolicy: Always
+        livenessProbe:
+          exec:
+            command:
+            - /usr/local/bin/healthcheck.sh
+          failureThreshold: 3
+          initialDelaySeconds: 1
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
         name: datacollector
         resources:
           requests:
