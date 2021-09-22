@@ -29,7 +29,6 @@ commit_hash=4.3.0.5216_2021-09-16_master_39524df4acaa71c119236b405a1510c8217c44f
 amd64_rpm_sha1=11a222ae245a2b0d99747ef18d91d9d4ec097432
 arm64_rpm_sha1=1c7d6748c6813645527df2eca0e8d0049435ca47
 
-pkgname=lacework
 download_url="https://s3-us-west-2.amazonaws.com/www.lacework.net/download/${commit_hash}"
 
 #max number of retries for install
@@ -38,10 +37,8 @@ max_retries=1
 #retry install after x seconds
 max_wait=5
 
-ARG1=$1
-SERVER_URL=""
-#default server url
-lw_server_url="https://api.lacework.net"
+# name of the package to install
+pkgname=lacework
 
 # extra protection for mktemp: when it fails - returns fallback value
 mktemp_safe() {
@@ -55,62 +52,8 @@ mktemp_safe() {
 	fi
 }
 
-check_bash() {
-	if [ "$ARG1" = "" ];
-	then
-		if [ "$0" = "bash" ] ||  [ "$0" = "sh" ];
-		then
-			cat <<-EOF
-			 ----------------------------------
-			    Error:
-			    This installer needs user input and was unable to read it.
-
-			    Please run the installer using one of the following options:
-
-			        1. sudo sh -c "\$(curl -sSL ${download_url}/install.sh)"
-
-			    OR a two steps process to download the installer to /tmp and run it from there.
-
-			        1. "curl -sSL ${download_url}/install.sh > /tmp/install.sh"
-		        	2. sudo sh /tmp/install.sh
-			 ----------------------------------
-			EOF
-			exit 100
-		fi
-	fi
-}
-
 command_exists() {
 	command -v "$@" > /dev/null 2>&1
-}
-
-# Check if this is a forked Linux distro
-check_forked() {
-	# Check for lsb_release command existence, it usually exists in forked distros
-	if command_exists lsb_release; then
-		# Check if the `-u` option is supported
-		set +e
-		lsb_release -a -u > /dev/null 2>&1
-		lsb_release_exit_code=$?
-		set -e
-
-		# Check if the command has exited successfully, it means we're in a forked distro
-		if [ "$lsb_release_exit_code" = "0" ]; then
-			# Print info about current distro
-			cat <<-EOF
-			You're using '$lsb_dist' version '$dist_version'.
-			EOF
-
-			# Get the upstream release info
-			lsb_dist=$(lsb_release -a -u 2>&1 | tr '[:upper:]' '[:lower:]' | grep -E 'id' | cut -d ':' -f 2 | tr -d '[[:space:]]')
-			dist_version=$(lsb_release -a -u 2>&1 | tr '[:upper:]' '[:lower:]' | grep -E 'codename' | cut -d ':' -f 2 | tr -d '[[:space:]]')
-
-			# Print info about upstream distro
-			cat <<-EOF
-			Upstream release is '$lsb_dist' version '$dist_version'.
-			EOF
-		fi
-	fi
 }
 
 check_x64() {
@@ -218,110 +161,14 @@ get_curl() {
 	fi
 }
 
-get_lsb_dist() {
-
-	# perform some very rudimentary platform detection
-
-	case "$usedocker" in
-		yes)
-			lsb_dist="usedocker"
-			;;
-		*)
-			;;
-	esac
-
-	if [ -z "$lsb_dist" ] && command_exists lsb_release; then
-		lsb_dist="$(lsb_release -si)"
-	fi
-	if [ -z "$lsb_dist" ] && [ -r /etc/lsb-release ]; then
-		lsb_dist="$(. /etc/lsb-release && echo "$DISTRIB_ID")"
-	fi
-	if [ -z "$lsb_dist" ] && [ -r /etc/debian_version ]; then
-		lsb_dist='debian'
-	fi
-	if [ -z "$lsb_dist" ] && [ -r /etc/fedora-release ]; then
-		lsb_dist='fedora'
-	fi
-	if [ -z "$lsb_dist" ] && [ -r /etc/oracle-release ]; then
-		lsb_dist='oracleserver'
-	fi
-	if [ -z "$lsb_dist" ]; then
-		if [ -r /etc/centos-release ] || [ -r /etc/redhat-release ]; then
-			lsb_dist='centos'
-		fi
-	fi
-	if [ -z "$lsb_dist" ] && [ -r /etc/os-release ]; then
-		lsb_dist="$(. /etc/os-release && echo "$ID")"
-	fi
- 	if [ -z "$lsb_dist" ] && [ -r /etc/system-release ]; then
- 		lsb_dist="$(cat /etc/system-release | cut -d " " -f 1)"
- 	fi
-
-	# Convert to all lower
-	lsb_dist="$(echo "$lsb_dist" | tr '[:upper:]' '[:lower:]')"
-}
-
-check_user_x64() {
-	case "$lsb_dist" in
-		*ubuntu*|*debian*)
-			case "$(dpkg --print-architecture)" in
-				*64)
-					;;
-				*)
-					cat >&2 <<-'EOF'
-					     ----------------------------------
-					        Error: Package manager (dpkg) does not support 64-bit binaries.
-					        Lacework currently only supports 64-bit platforms.
-					     ----------------------------------
-					EOF
-					exit 600
-					;;
-			esac
-		;;
-		*coreos*|usedocker)
-		;;
-		*fedora*|*centos*|*redhatenterprise*|*oracleserver*|*scientific*)
-		;;
-		*)
-		;;
-	esac
-}
-
-get_dist_version() {
-	case "$lsb_dist" in
-		*oracleserver*)
-			# need to switch lsb_dist to match yum repo URL
-			lsb_dist="oraclelinux"
-			dist_version="$(rpm -q --whatprovides redhat-release --queryformat "%{VERSION}\n" | sed 's/\/.*//' | sed 's/\..*//' | sed 's/Server*//')"
-		;;
-		*fedora*|centos*|*redhatenterprise*|*scientific*)
-			dist_version="$(rpm -q --whatprovides redhat-release --queryformat "%{VERSION}\n" | sed 's/\/.*//' | sed 's/\..*//' | sed 's/Server*//')"
-		;;
-		*)
-			if command_exists lsb_release; then
-				dist_version="$(lsb_release --codename | cut -f2)"
-			fi
-			if [ -z "$dist_version" ] && [ -r /etc/os-release ]; then
-				dist_version="$(. /etc/os-release && echo "$VERSION_ID")"
-			fi
-		;;
-	esac
-}
-
-get_pkg_suffix() {
-	if [ "$arch" = "arm64" ]; then
-		rpm_pkg_suffix="aarch64"
-	else
-		rpm_pkg_suffix="x86_64"
-	fi
-}
-
 get_arch() {
 	local archname=`uname -m`
 	if [ "$archname" = "aarch64" ]; then
 		arch="arm64"
+		rpm_pkg_suffix="aarch64"
 	else
 		arch="amd64"
+		rpm_pkg_suffix="x86_64"
 	fi
 }
 
@@ -420,23 +267,13 @@ do_install() {
 	curl=''
 	get_curl
 
-	lsb_dist=''
-	get_lsb_dist
-
 	check_root_cert
-
-	check_user_x64
-
-	dist_version=''
-	get_dist_version
 
 	arch=''
 	get_arch
 
 	rpm_pkg_suffix=''
-
-	# Check if this is a forked Linux distro
-	check_forked
+	get_pkg_suffix
 
 	echo "Installing on  $lsb_dist ($dist_version)"
 
