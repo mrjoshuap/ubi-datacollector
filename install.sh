@@ -214,47 +214,26 @@ install_retries() {
 }
 
 install_pkg() {
-
-	# Run setup for each distro accordingly
-	case "$lsb_dist" in
-		*fedora*|*centos*|*oraclelinux*|*redhatenterprise*|*amzn*|*amazon*|*scientific*)
-
-			if [ "$lsb_dist" = "*fedora*" ] && [ "$dist_version" -ge "22" ]; then
-				echo "Using dnf"
-				install_pkg_cmd="dnf -y install ${pkg_tmp_filename}"
-				install_retries
-			else
-				set +e
-				if command_exists microdnf; then
-					echo "Using microdnf and rpm"
-					install_pkg_cmd="rpm -i ${pkg_tmp_filename}"
-				else
-					echo "Using yum"
-					yum repolist | grep ^epel
-					disable_epel=$?
-					if [ "$disable_epel" = "0" ]; then
-						echo "Disabling EPEL repository"
-						disable_epel="--disablerepo=epel"
-					else
-						disable_epel=""
-					fi
-					install_pkg_cmd="yum -y install ${pkg_tmp_filename}"
-				fi
-				install_retries
-			fi
-		;;
-		*)
-		cat >&2 <<-EOF
-		    ----------------------------------
-		      Error: The platform '$lsb_dist' is not supported by this installer.
-
-		             You can find the list of supported platforms at:
-		             https://support.lacework.com/hc/en-us/articles/360005230014-Supported-Operating-Systems
-		    ----------------------------------
-		EOF
-		exit 1
-		;;
-	esac
+	set +e
+	if command_exists dnf; then
+		echo "Using dnf"
+		install_pkg_cmd="dnf -y install ${pkg_tmp_filename}"
+	elif command_exists microdnf; then
+		echo "Using microdnf and rpm"
+		install_pkg_cmd="rpm -i ${pkg_tmp_filename}"
+	elif command_exists yum;  then
+		echo "Using yum"
+		yum repolist | grep ^epel
+		disable_epel=$?
+		if [ "$disable_epel" = "0" ]; then
+			echo "Disabling EPEL repository"
+			disable_epel="--disablerepo=epel"
+		else
+			disable_epel=""
+		fi
+		install_pkg_cmd="yum -y install ${pkg_tmp_filename}"
+	fi
+	install_retries
 }
 
 do_install() {
