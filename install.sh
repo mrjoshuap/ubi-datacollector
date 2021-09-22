@@ -260,75 +260,21 @@ do_install() {
 	echo "Lacework successfully installed"
 }
 
-# wrapped up in a function so that we have some protection against only getting
-# half the file during "curl | sh"
-while getopts "SFOhU:" arg; do
+while getopts "h:" arg; do
   case $arg in
-    h)
-	cat >&2 <<-'EOF'
-	     ----------------------------------
-	     Usage: sudo install.sh -h [-S] [-O] [-F]
-	            -h: usage banner
-	                [Optional Parameters]
-	            -F: disable FIM
-	            -S: enable strict mode
-	            -O: filter auditd related messages going to system journal
-	            -U: server url where Agent sends data
-	     ----------------------------------
-	EOF
-	exit 0
-     ;;
-    O)
-      SYSTEMD_OVERRIDE=yes
-      shift
-      ;;
-    F)
-      FIM_ENABLE=disable
-      shift
-      ;;
-    S)
-      STRICT_MODE=yes
-      shift
-	  ;;
-    U)
-      if [ -z "${OPTARG}" ]; then
-         echo "server url not provided"
-         exit 1
-      fi
-
-      #in case of a mismatch the exit status of below expression is 1, and set -e will make the script exit.
-      #hence the '|| true' at the end.
-      match=$(echo "${OPTARG}" | grep -E "^https://.*\.lacework.net$") || true
-      if [ -z $match ]; then
-        echo "Please provide a valid serverurl in lacework.net domain"
-        exit 1
-      fi
-
-      if [ ! -z "${SERVER_URL}" ]; then
-         if [ "${SERVER_URL}" != "${OPTARG}" ]; then
-             echo "Provided serverurl ${OPTARG} is incorrect for your region, trying ${SERVER_URL}"
-         fi
-         lw_server_url=${SERVER_URL}
-      else
-         lw_server_url=${OPTARG}
-      fi
-      shift 2
-      ;;
-  esac
+    	h)
+			cat >&2 <<-'EOF'
+				----------------------------------
+				Usage: sudo install.sh -h
+						-h: usage banner
+							[Optional Parameters]
+				----------------------------------
+			EOF
+			exit 0
+    	;;
+  	esac
 done
 
-ARG1=$1
-if [ ! -z "${ARG1}" ]; then
-   ARG1=`echo ${ARG1} | grep -E '^[[:alnum:]][-[:alnum:]]{0,55}[[:alnum:]]$'`
-fi
-
 do_install
-
-if [ "${SYSTEMD_OVERRIDE}" = "yes" ]; then
-	if command_exists systemctl; then
-	        systemctl mask systemd-journald-audit.socket
-	        systemctl restart systemd-journald
-	fi
-fi
 
 exit 0
