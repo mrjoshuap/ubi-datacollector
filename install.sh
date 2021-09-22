@@ -20,45 +20,25 @@ if [ -n "${DEBUG}" ]; then
 fi
 
 #
-# This script is meant for quick & easy install via:
-#    1. sudo sh -c "$(curl -sSL https://s3-us-west-2.amazonaws.com/www.lacework.net/download/4.3.0.5146_2021-09-13_master_36599af652b771c16f9e64f4cc3bf5d6ea8fe3b0/install.sh)"
-#    or
-#    1. "curl -sSL https://s3-us-west-2.amazonaws.com/www.lacework.net/download/4.3.0.5146_2021-09-13_master_36599af652b771c16f9e64f4cc3bf5d6ea8fe3b0/install.sh > /tmp/install.sh"
-#    2. sudo sh /tmp/install.sh -U <serverurl>
-#    Note: <serverurl> is the Lacework Server URL specific to your region.
-#          if not provided, the US URL will be assumed
-#    or
-#    1. export LaceworkAccessToken=<accesstoken>
-#    3. /usr/bin/docker run --name datacollector --net=host --pid=host --privileged --volume /:/laceworkfim:ro --volume /var/lib/lacework:/var/lib/lacework --volume /var/log:/var/log --volume /var/run:/var/run --volume /etc/passwd:/etc/passwd:ro --volume /etc/group:/etc/group:ro --env LaceworkAccessToken lacework/datacollector:latest
-
-SYSTEMD_OVERRIDE=no
-STRICT_MODE=no
-FIM_ENABLE=enable
+# This script is intended to build the Lacework Agent Data Collector into a UBI based container image.
+#
 
 # Agent version
 version=4.3.0.5216
 commit_hash=4.3.0.5216_2021-09-16_master_39524df4acaa71c119236b405a1510c8217c44f2
-# These variables are deprecated and will be removed in the next release
-deb_sha1=f5a80071da7e9313139d5e985e8eb77205778099
-rpm_sha1=11a222ae245a2b0d99747ef18d91d9d4ec097432
-dc_sha1=
-dc_musl_sha1=
-
-amd64_deb_sha1=f5a80071da7e9313139d5e985e8eb77205778099
 amd64_rpm_sha1=11a222ae245a2b0d99747ef18d91d9d4ec097432
-arm64_deb_sha1=91123e4bdaa4448239e3fd714fccadaeff28cd4f
 arm64_rpm_sha1=1c7d6748c6813645527df2eca0e8d0049435ca47
-apk_sha1=85a9d38c336719e41a56948fa100683b9e092ac3
 
 pkgname=lacework
 download_url="https://s3-us-west-2.amazonaws.com/www.lacework.net/download/${commit_hash}"
+
 #max number of retries for install
 max_retries=1
+
 #retry install after x seconds
 max_wait=5
 
 ARG1=$1
-usedocker=no
 SERVER_URL=""
 #default server url
 lw_server_url="https://api.lacework.net"
@@ -215,77 +195,6 @@ EOF
 	rm -f ${LW_INSTALLER_KEY}
 }
 
-get_serverurl_from_cfg_file() {
-	if command_exists awk; then
-		if [ -f /var/lib/lacework/config/config.json ]; then
-			config_url=$(grep -v "#" /var/lib/lacework/config/config.json)
-			config_url=$(echo $config_url | awk 'BEGIN {RS=","} match($0, /serverurl([^,]+)/) { print substr( $0, RSTART, RLENGTH )}')
-			config_url=$(echo $config_url | awk 'BEGIN{ORS=""}{print $0}')
-			config_url=$(echo $config_url | sed 's/[\} ]//g')
-			config_url=$(echo $config_url | awk 'BEGIN {FS="\""} {print $3}')
-			if [ ! -z "${config_url}" ]; then
-				echo "${config_url}"
-				return
-			fi
-		fi
-	fi
-	echo ""
-}
-
-read_lw_server_url() {
-	cfg_url=$(get_serverurl_from_cfg_file)
-	if [ ! -z "${cfg_url}" ]; then
-	echo "Using serverurl already set in local config: ${cfg_url}"
-		lw_server_url=${cfg_url}
-		return
-	fi
-	if [ ! -z "$SERVER_URL" ];
-	then
-		lw_server_url=$SERVER_URL
-	fi
-}
-
-check_lw_connectivity() {
-	lw_cfg_url="${lw_server_url}/upgrade/?name=datacollector&version=${version}"
-
-	if [ "${STRICT_MODE}" = "no" ]; then
-		set +e
-	fi
-	echo "Check connectivity to Lacework server"
-	if command_exists awk; then
-		cfg_url=$(get_serverurl_from_cfg_file)
-		if [ ! -z "${cfg_url}" ]; then
-			lw_cfg_url=${cfg_url}
-		fi
-		if command_exists curl; then
-			response=`curl -o /dev/null -w "%{http_code}" -sSL ${lw_cfg_url}`
-		elif command_exists wget; then
-			response=`wget -SO- ${lw_cfg_url} 2>&1 | grep 'HTTP/' | awk '{print $(NF-1)}'`
-		elif command_exists busybox && busybox --list-modules | grep -q wget; then
-			response="500"
-			busybox wget -O- ${lw_cfg_url} 2>&1 > /dev/null
-			if [ $? == 0 ]; then
-				response="200"
-			fi
-		fi
-		if [ "${response}" != "200" ]; then
-			cat >&2 <<-EOF
-			----------------------------------
-			Error: this installer needs the ability to contact $lw_cfg_url
-			Please ensure this machine is able to connect to the network
-			and/or configure correct proxy settings
-			----------------------------------
-			EOF
-			if [ "${STRICT_MODE}" = "yes" ]; then
-				exit 400
-			fi
-		fi
-	fi
-	if [ "${STRICT_MODE}" = "no" ]; then
-		set -e
-	fi
-}
-
 shell_prefix() {
 	user=$(whoami)
 	if [ "$user" != 'root' ]; then
@@ -380,25 +289,6 @@ check_user_x64() {
 
 get_dist_version() {
 	case "$lsb_dist" in
-		*ubuntu*)
-			if command_exists lsb_release; then
-				dist_version="$(lsb_release --codename | cut -f2)"
-			fi
-			if [ -z "$dist_version" ] && [ -r /etc/lsb-release ]; then
-				dist_version="$(. /etc/lsb-release && echo "$DISTRIB_CODENAME")"
-			fi
-		;;
-		*debian*)
-			dist_version="$(cat /etc/debian_version | sed 's/\/.*//' | sed 's/\..*//')"
-			case "$dist_version" in
-				8)
-					dist_version="jessie"
-				;;
-				7)
-					dist_version="wheezy"
-				;;
-			esac
-		;;
 		*oracleserver*)
 			# need to switch lsb_dist to match yum repo URL
 			lsb_dist="oraclelinux"
@@ -406,9 +296,6 @@ get_dist_version() {
 		;;
 		*fedora*|centos*|*redhatenterprise*|*scientific*)
 			dist_version="$(rpm -q --whatprovides redhat-release --queryformat "%{VERSION}\n" | sed 's/\/.*//' | sed 's/\..*//' | sed 's/Server*//')"
-		;;
-		*coreos*|usedocker)
-			dist_version="coreos"
 		;;
 		*)
 			if command_exists lsb_release; then
@@ -424,10 +311,8 @@ get_dist_version() {
 get_pkg_suffix() {
 	if [ "$arch" = "arm64" ]; then
 		rpm_pkg_suffix="aarch64"
-		deb_pkg_suffix="arm64"
 	else
 		rpm_pkg_suffix="x86_64"
-		deb_pkg_suffix="amd64"
 	fi
 }
 
@@ -442,59 +327,19 @@ get_arch() {
 
 
 download_pkg() {
-	case "$lsb_dist" in
-		*ubuntu*|*debian*)
-			export pkg_fullname="${pkgname}_${version}_${deb_pkg_suffix}.deb"
-			export pkg_tmp_filename=$(mktemp_safe .deb "/tmp/${pkg_fullname}")
-			(set -x; $curl ${download_url}/${pkg_fullname} > ${pkg_tmp_filename})
-			file_sha1=$(sha1sum ${pkg_tmp_filename} | cut -d " " -f 1)
-			sha1_name="$arch"_deb_sha1
-			exp_sha1=$(eval "echo \${$sha1_name}")
-		;;
-		*alpine*)
-			export pkg_fullname="${pkgname}-${version}-r1.apk"
-			export pkg_tmp_filename=$(mktemp_safe .apk "/tmp/${pkg_fullname}")
-			(set -x; $curl ${download_url}/${pkg_fullname} > ${pkg_tmp_filename})
-			file_sha1=$(sha1sum ${pkg_tmp_filename} | cut -d " " -f 1)
-			exp_sha1=${apk_sha1}
-		;;
-		*coreos*|usedocker)
-			(set -x; $curl ${download_url}/datacollector.service > /etc/systemd/system/datacollector.service)
-		;;
-		*)
-			export pkg_fullname="${pkgname}-${version}-1.${rpm_pkg_suffix}.rpm"
-			export pkg_tmp_filename=$(mktemp_safe .rpm "/tmp/${pkg_fullname}")
-			(set -x; $curl ${download_url}/${pkg_fullname} > ${pkg_tmp_filename})
-			file_sha1=$(sha1sum ${pkg_tmp_filename} | cut -d " " -f 1)
-			sha1_name="$arch"_rpm_sha1
-			exp_sha1=$(eval "echo \${$sha1_name}")
-		;;
-	esac
+	export pkg_fullname="${pkgname}-${version}-1.${rpm_pkg_suffix}.rpm"
+	export pkg_tmp_filename=$(mktemp_safe .rpm "/tmp/${pkg_fullname}")
+	(set -x; $curl ${download_url}/${pkg_fullname} > ${pkg_tmp_filename})
+	file_sha1=$(sha1sum ${pkg_tmp_filename} | cut -d " " -f 1)
+	sha1_name="$arch"_rpm_sha1
+	exp_sha1=$(eval "echo \${$sha1_name}")
+
 	if [ "${exp_sha1}" != "${file_sha1}" ]; then
 		echo "----------------------------------"
 		echo "Download sha1 checksum failed, [${exp_sha1}] [${file_sha1}]"
 		echo "----------------------------------"
 		exit 700
 	fi
-}
-
-install_signed_apt() {
-	lsb_ver=`lsb_release -r | cut -f2`
-	lsb_rel=`lsb_release -c | cut -f2`
-	lsb_distro=`lsb_release -i | cut -f2`
-	if [ "$lsb_distro" = "Debian" ]; then
-		lsb_ver=`lsb_release -r | cut -f2 | cut -d. -f1`
-	fi
-	( set -x; $sh_c "sleep 3; apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 18E76630; \
-		add-apt-repository 'deb [arch=${deb_pkg_suffix}] ${download_url}/latest/DEB/$lsb_distro/$lsb_ver $lsb_rel main'; \
-		apt-get update; apt-get install lacework" )
-}
-
-install_signed_rpm() {
-	( set -x; $sh_c "sleep 3; \
-		curl -sSL ${download_url}/latest/RPMS/${rpm_pkg_suffix}/lacework-prod.repo > /tmp/lacework-prod.repo.$$;\
-		mv /tmp/lacework-prod.repo.$$ /etc/yum.repos.d/lacework-prod.repo; \
-		microdnf install -y ${disable_epel} ${pkg_tmp_filename}")
 }
 
 install_retries() {
@@ -525,30 +370,6 @@ install_pkg() {
 
 	# Run setup for each distro accordingly
 	case "$lsb_dist" in
-		'opensuse project'|*opensuse*|'suse linux'|sle[sd])
-		install_pkg_cmd="zypper -n install ${pkg_tmp_filename}"
-		install_retries
-		;;
-		*ubuntu*|*debian*)
-			export DEBIAN_FRONTEND=noninteractive
-
-			did_apt_get_update=
-			apt_get_update() {
-				if [ -z "$did_apt_get_update" ]; then
-					install_pkg_cmd="apt-get -qq update"
-					install_retries
-					did_apt_get_update=1
-				fi
-			}
-
-			# Set +e to make sure we do not fail if these commands fail, but capture the error
-                        # On end-of-release versions (E.g. 13.10) apt-get update fails
-
-			set +e
-			apt_get_update
-			install_pkg_cmd="dpkg -i ${pkg_tmp_filename}"
-			install_retries
-		;;
 		*fedora*|*centos*|*oraclelinux*|*redhatenterprise*|*amzn*|*amazon*|*scientific*)
 
 			if [ "$lsb_dist" = "*fedora*" ] && [ "$dist_version" -ge "22" ]; then
@@ -556,28 +377,24 @@ install_pkg() {
 				install_pkg_cmd="dnf -y install ${pkg_tmp_filename}"
 				install_retries
 			else
-				echo "Using rpm"
 				set +e
-				microdnf repolist | grep ^epel
-				disable_epel=$?
-				if [ "$disable_epel" = "0" ]; then
-					disable_epel="--disablerepo=epel"
+				if command_exists microdnf; then
+					echo "Using microdnf and rpm"
+					install_pkg_cmd="rpm -i ${pkg_tmp_filename}"
 				else
-					disable_epel=""
+					echo "Using yum"
+					yum repolist | grep ^epel
+					disable_epel=$?
+					if [ "$disable_epel" = "0" ]; then
+						echo "Disabling EPEL repository"
+						disable_epel="--disablerepo=epel"
+					else
+						disable_epel=""
+					fi
+					install_pkg_cmd="yum -y install ${pkg_tmp_filename}"
 				fi
-				install_pkg_cmd="rpm -i ${pkg_tmp_filename}"
 				install_retries
 			fi
-		;;
-		*coreos*|usedocker)
-			(set -x; systemctl stop datacollector.service)
-			(set -x; systemctl daemon-reload)
-			(set -x; systemctl enable datacollector.service)
-			(set -x; systemctl start datacollector.service)
-		;;
-		*alpine*)
-			install_pkg_cmd="apk add --allow-untrusted ${pkg_tmp_filename}"
-			install_retries
 		;;
 		*)
 		cat >&2 <<-EOF
@@ -593,43 +410,6 @@ install_pkg() {
 	esac
 }
 
-# Customized parameters
-write_config() {
-
-	if [ ! -f /var/lib/lacework/config/config.json ]
-	then
-		if [ "$ARG1" = "" ];
-		then
-			read -p "Please enter access token: " access_token
-		else
-			access_token=$ARG1
-		fi
-		if [ "$access_token" = "" ];
-		then
-			echo "Not a valid access_token"
-			exit 800
-		fi
-		rbacTokenLen="1-30"
-		LwTokenShort=`echo "$access_token" |cut -c${rbacTokenLen}`
-		echo "Using access token : $LwTokenShort ..."
-		echo "Using server url : $lw_server_url"
-		echo "Writing configuration file"
-
-		(set -x; $sh_c 'mkdir -p /var/lib/lacework/config')
-		($sh_c 'echo "+ sh -c Writing config.json in /var/lib/lacework/config"')
-		($sh_c "echo \"{\" > /var/lib/lacework/config/config.json")
-		($sh_c "echo \" \\\"tokens\\\" : { \\\"AccessToken\\\" : \\\"${access_token}\\\" } \"    >> /var/lib/lacework/config/config.json")
-		($sh_c "echo \" ,\\\"serverurl\\\" : \\\"${lw_server_url}\\\" \"    >> /var/lib/lacework/config/config.json")
-		if [ "$FIM_ENABLE" = "disable" ]; then
-			($sh_c "echo \" ,\\\"fim\\\" : { \\\"mode\\\" : \\\"${FIM_ENABLE}\\\" } \"    >> /var/lib/lacework/config/config.json")
-		fi
-		($sh_c "echo \"}\" >> /var/lib/lacework/config/config.json")
-	else
-		echo "Skipping writing config since a config file already exists"
-	fi
-}
-
-
 do_install() {
 	check_bash
 	check_x64
@@ -643,10 +423,6 @@ do_install() {
 	lsb_dist=''
 	get_lsb_dist
 
-	read_lw_server_url
-
-	check_lw_connectivity
-
 	check_root_cert
 
 	check_user_x64
@@ -658,15 +434,11 @@ do_install() {
 	get_arch
 
 	rpm_pkg_suffix=''
-	deb_pkg_suffix=''
-	get_pkg_suffix
 
 	# Check if this is a forked Linux distro
 	check_forked
 
 	echo "Installing on  $lsb_dist ($dist_version)"
-
-	write_config
 
 	pkg_fullname=''
 	download_pkg

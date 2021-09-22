@@ -7,17 +7,20 @@ This is the Lacework Agent Data Collector delivered as a UBI based image.  It is
 
 ## Getting Started
 
+Note, the CRC is quite heavy.  If you need the monitoring and telemetry, as I do, expect to dedicate at least 14 GiB of memory (a value of 14336) for core functionality. Increased workloads will require more memory...
+
 ### Setup Code Ready Containers
 1. Create a Red Hat Developer Account
 2. Download your pull secret and Code Ready Containers
 3. Setup, configure and start Code Ready Containers
 ```
 crc setup
-crc config set memory 16384
-crc config set cpus 4
-crc config set kubeadmin-password 'lacework$'
+crc config set cpus 6
 crc config set disk-size 128
+crc config set memory 24576 # 24 GB
+crc config set kubeadmin-password 'lacework$'
 crc config set consent-telemetry yes
+crc config set enable-cluster-monitoring true
 crc config set pull-secret-file /path/to/your/.crc_pull_secret.json
 ```
 

@@ -8,10 +8,11 @@ USER root
 # uncomment to upgrade
 # RUN microdnf update -y && rm -rf /var/cache/yum
 
+COPY entry.sh /usr/local/bin/entry.sh
 COPY install.sh /usr/local/bin/install.sh
 COPY healthcheck.sh /usr/local/bin/healthcheck.sh
 
-RUN /usr/local/bin/install.sh ${LACEWORK_ACCESS_TOKEN:-FICTIONAL-ACCESS-TOKEN} -U ${LACEWORK_SERVER_URL:-https://fictional.lacework.net} \
+RUN /usr/local/bin/install.sh \
         && rm -f /usr/local/bin/install.sh /var/lib/lacework/config/config.json
 
-ENTRYPOINT ["/var/lib/lacework/datacollector"]
+ENTRYPOINT ["/usr/bin/local/entry.sh"]
