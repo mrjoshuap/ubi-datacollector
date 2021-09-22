@@ -269,10 +269,8 @@ do_install() {
 	check_root_cert
 
 	arch=''
-	get_arch
-
 	rpm_pkg_suffix=''
-	get_pkg_suffix
+	get_arch
 
 	echo "Installing on  $lsb_dist ($dist_version)"
 
