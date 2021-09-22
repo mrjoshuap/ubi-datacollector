@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: lacework-config
 data:
+  access_token: e8cfef21e694160b5e7a7a60c7d77a851d15eac0f81d683006a9424d
+  server_url: "https://api.lacework.net"
   config.json: |
     {
       "tokens": {

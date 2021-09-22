@@ -27,7 +27,7 @@ spec:
       serviceAccountName: lacework
       containers:
         - name: lacework
-          image: quay.io/themrjoshuap/ubi-datacollector:latest
+          image: lacework/ubi-datacollector
           imagePullPolicy: Always
           resources:
             requests:

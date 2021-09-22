@@ -1,0 +1,63 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  annotations:
+    app.openshift.io/vcs-ref: main
+    app.openshift.io/vcs-uri: https://github.com/mrjoshuap/ubi-datacollector
+    openshift.io/generated-by: OpenShiftWebConsole
+  creationTimestamp: "2021-09-21T13:36:30Z"
+  generation: 31
+  labels:
+    app: ubi-datacollector
+    app.kubernetes.io/component: ubi-datacollector
+    app.kubernetes.io/instance: ubi-datacollector
+    app.kubernetes.io/name: ubi-datacollector
+    app.kubernetes.io/part-of: ubi-datacollector-app
+  name: ubi-datacollector
+  namespace: lacework
+  resourceVersion: "1453669"
+  uid: 0a880a35-ccb0-48e4-8afe-52055c5ecdae
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: ubi-datacollector:latest
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    contextDir: /
+    git:
+      ref: main
+      uri: https://github.com/mrjoshuap/ubi-datacollector
+    type: Git
+  strategy:
+    dockerStrategy:
+      buildArgs:
+      - name: LACEWORK_ACCESS_TOKEN
+        valueFrom:
+          secretKeyRef:
+            key: access_token
+            name: lacework-config
+      - name: LACEWORK_SERVER_URL
+        valueFrom:
+          secretKeyRef:
+            key: server_url
+            name: lacework-config
+      dockerfilePath: Dockerfile
+    type: Docker
+  successfulBuildsHistoryLimit: 5
+  triggers:
+  - generic:
+      secretReference:
+        name: ubi-datacollector-generic-webhook-secret
+    type: Generic
+  - github:
+      secretReference:
+        name: ubi-datacollector-github-webhook-secret
+    type: GitHub
+  - type: ConfigChange
+status:
+  lastVersion: 22
