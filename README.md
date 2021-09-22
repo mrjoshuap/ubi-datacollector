@@ -56,14 +56,18 @@ oc adm policy add-scc-to-user privileged -z lacework
 
 #oc create -f lacework-is.yml
 oc import-image ubi8-minimal:latest --from=registry.access.redhat.com/ubi8-minimal:latest -n lacework --confirm
+oc tag registry.access.redhat.com/ubi8-minimal:latest lacework/ubi8-minimal:latest --scheduled
+
 #oc import-image ubi-datacollector:latest --from=quay.io/themrjoshuap/ubi-datacollector:latest -n lacework --confirm
 
 oc new-build https://github.com/mrjoshuap/ubi-datacollector.git --strategy=docker -l jenkins --to ubi-datacollector
+oc set triggers bc ubi-datacollector --from-image="ubi8-minimal:latest"
 
 oc create -n lacework -f lacework-cfg-k8s.yaml
 oc create -n lacework -f lacework-k8s.yaml
 
 oc set image-lookup daemonset/lacework-agent
+oc set triggers ds lacework-agent --containers --from-image='lacework/ubi-datacollector:latest'
 
 oc get all -n lacework
 ```
