@@ -10,13 +10,13 @@ metadata:
 spec:
   selector:
     matchLabels:
-      name: lacework
+      name: datacollector
   updateStrategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        name: lacework
+        name: datacollector
     spec:
       tolerations:
         - key: node-role.kubernetes.io/master
@@ -26,7 +26,7 @@ spec:
       hostNetwork: true
       serviceAccountName: lacework
       containers:
-        - name: lacework
+        - name: datacollector
           image: lacework/ubi-datacollector
           imagePullPolicy: Always
           resources:

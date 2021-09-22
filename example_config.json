@@ -1,0 +1,11 @@
+{
+    "tokens": {
+    "AccessToken":"FICTIONAL-ACCESS-TOKEN"
+    },
+    "tags":{
+    "Env":"k8s",
+    "KubernetesCluster":"my-ocp-crc"
+    },
+    "serverurl":"https://fictional.lacework.net",
+    "crioruntime":"enable"
+}
