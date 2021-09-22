@@ -44,30 +44,27 @@ oc login -u developer -p 'developer' https://api.crc.testing:6443
 ```
 oc new-project lacework --display-name="Lacework" --description="Project and namespace for the Lacework Data Collector Agent"
 
-#oc create -f lacework-sa.yml
 oc create serviceaccount lacework -n lacework
 
-#oc create -f lacework-scc.yml
 oc adm policy add-scc-to-user privileged -z lacework
 
-#oc adm policy add-scc-to-user hostaccess system:serviceaccount:lacework:lacework
-#oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:lacework:lacework
-#oc adm policy add-scc-to-user hostnetwork system:serviceaccount:lacework:lacework
+oc import-image registry.access.redhat.com/ubi8-minimal --from=registry.access.redhat.com/ubi8-minimal:latest --scheduled
 
-#oc create -f lacework-is.yml
-oc import-image ubi8-minimal:latest --from=registry.access.redhat.com/ubi8-minimal:latest -n lacework --confirm
-oc tag registry.access.redhat.com/ubi8-minimal:latest lacework/ubi8-minimal:latest --scheduled
+#oc import-image ubi-datacollector --from=quay.io/themrjoshuap/ubi-datacollector:latest -n lacework --confirm
 
-#oc import-image ubi-datacollector:latest --from=quay.io/themrjoshuap/ubi-datacollector:latest -n lacework --confirm
+cp example_config.json config.json
+vi config.json
 
-oc new-build https://github.com/mrjoshuap/ubi-datacollector.git --strategy=docker -l jenkins --to ubi-datacollector
+oc create configmap lacework-config --from-file=config.json=config.json
+
+oc new-build https://github.com/mrjoshuap/ubi-datacollector.git --strategy=docker --to ubi-datacollector
 oc set triggers bc ubi-datacollector --from-image="ubi8-minimal:latest"
+oc set triggers bc ubi-datacollector --from-config
 
-oc create -n lacework -f lacework-cfg-k8s.yaml
 oc create -n lacework -f lacework-k8s.yaml
 
 oc set image-lookup daemonset/lacework-agent
-oc set triggers ds lacework-agent --containers --from-image='lacework/ubi-datacollector:latest'
+oc set triggers ds lacework-agent --containers="datacollector" --from-image='lacework/ubi-datacollector:latest'
 
 oc get all -n lacework
 ```
