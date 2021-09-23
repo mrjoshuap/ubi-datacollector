@@ -12,4 +12,4 @@ COPY install.sh /usr/local/bin/install.sh
 RUN /usr/local/bin/install.sh \
         && rm -f /var/lib/lacework/config/config.json
 
-ENTRYPOINT ["/usr/local/bin/entry.sh"]
+ENTRYPOINT ["/var/lib/lacework/datacollector"]
