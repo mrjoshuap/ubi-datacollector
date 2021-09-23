@@ -141,3 +141,4 @@ curl -H "X-GitHub-Event: push" -H "Content-Type: application/json" -X POST --dat
 * need to incorporate installation with other build processes -- see install.sh
 * need to expose the internal registry and test container scanning
 * buildconfigs need to specify the ref if not using a "master" branch -- ie main is default
+* need to build an arm64 / aarch64 container image
