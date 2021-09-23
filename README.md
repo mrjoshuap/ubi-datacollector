@@ -125,3 +125,6 @@ oc set image ds/lacework-agent datacollector=lacework/ubi-datacollector:latest
 ## To Do ... Wish List
 
 * Build an operator
+* Add to operator hub and red hat marketplace
+* Test the managed services versions?
+* Fix vulnerability scans -- they show as "unsupported" or something like that
