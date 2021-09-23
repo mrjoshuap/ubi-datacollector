@@ -5,7 +5,6 @@ USER root
 # uncomment to upgrade
 # RUN microdnf update -y && rm -rf /var/cache/yum
 
-COPY entry.sh /usr/local/bin/entry.sh
 COPY healthcheck.sh /usr/local/bin/healthcheck.sh
 COPY install.sh /usr/local/bin/install.sh
 
