@@ -7,9 +7,15 @@ This is the Lacework Agent Data Collector delivered as a UBI based image.  It is
 
 ## Getting Started
 
-Note, the CRC is quite heavy.  If you need the monitoring and telemetry, as I do, expect to dedicate at least 14 GiB of memory (a value of 14336) for core functionality. Increased workloads will require more memory...
+The three ways I'm planning on testing:
+
+1. OpenShift Code Ready Containers (CRC) -- All-In-One OpenShift for developer laptop use cases
+2. OKD 4.7 on AWS - the open source distribution of OpenShift; is a minor version behind OCP
+3. OCP 4.8 on AWS - using NFR subscriptions (when available)
 
 ### Setup Code Ready Containers
+Note, the CRC is quite heavy.  If you need the monitoring and telemetry, as I do, expect to dedicate at least 14 GiB of memory (a value of 14336) for core functionality. Increased workloads will require more memory...
+
 1. [Create a Red Hat Developer Account and download Code Ready Containers](https://developers.redhat.com/download-manager/link/3868678)
 2. Download your pull secret and Code Ready Containers
 3. Setup, configure and start Code Ready Containers
