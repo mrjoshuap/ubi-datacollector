@@ -128,8 +128,9 @@ oc set image ds/lacework-agent datacollector=lacework/ubi-datacollector:latest
 * Add to operator hub and red hat marketplace
 * Test the managed services versions?
 * Fix vulnerability scans -- they show as "unsupported" or something like that
-* Move ubi image into lacework proper
-* no more logs -- need to use stdout
+* Move ubi image into lacework proper repository (or create one in quay.io)
+* no more logs -- need to use stdout -- see entry.sh
 * vuln scanning seems not to work with Red Hat Linux CoreOS (yes, i know)
-* need proper healthchecks (i hacked a sample to check the actual process since i had access to the node's processes)
+* need proper healthchecks -- see healthcheck.sh
 * update agent install / service for podman
+* need to incorporate installation with other build processes -- see install.sh
