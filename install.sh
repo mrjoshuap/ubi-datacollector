@@ -26,8 +26,8 @@ fi
 # Agent version
 version=4.3.0.5354
 commit_hash=4.3.0.5354_2021-09-22_master_bb48b3330c86b4e54103a3bc2455bb0aba8eabbe
-amd64_rpm_sha1=11a222ae245a2b0d99747ef18d91d9d4ec097432
-arm64_rpm_sha1=1c7d6748c6813645527df2eca0e8d0049435ca47
+amd64_rpm_sha1=dcba567944eecf9ad95359b75b48bcf9d5967cb4
+arm64_rpm_sha1=
 
 download_url="https://s3-us-west-2.amazonaws.com/www.lacework.net/download/${commit_hash}"
 
@@ -178,11 +178,12 @@ download_pkg() {
 	export pkg_tmp_filename=$(mktemp_safe .rpm "/tmp/${pkg_fullname}")
 	echo "downloading ${download_url}/${pkg_fullname}"
 	(set -x; $curl ${download_url}/${pkg_fullname} > ${pkg_tmp_filename})
+
 	file_sha1=$(sha1sum ${pkg_tmp_filename} | cut -d " " -f 1)
 	sha1_name="$arch"_rpm_sha1
 	exp_sha1=$(eval "echo \${$sha1_name}")
 
-	if [ "${exp_sha1}" != "${file_sha1}" ]; then
+	if [ "${exp_sha1} " != " " && "${exp_sha1}" != "${file_sha1}" ]; then
 		echo "----------------------------------"
 		echo "Download sha1 checksum failed, [${exp_sha1}] [${file_sha1}]"
 		echo "----------------------------------"
