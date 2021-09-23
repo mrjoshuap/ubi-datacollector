@@ -24,8 +24,8 @@ fi
 #
 
 # Agent version
-version=4.3.0.5216
-commit_hash=4.3.0.5216_2021-09-16_master_39524df4acaa71c119236b405a1510c8217c44f2
+version=4.3.0.5354
+commit_hash=4.3.0.5354_2021-09-22_master_bb48b3330c86b4e54103a3bc2455bb0aba8eabbe
 amd64_rpm_sha1=11a222ae245a2b0d99747ef18d91d9d4ec097432
 arm64_rpm_sha1=1c7d6748c6813645527df2eca0e8d0049435ca47
 
@@ -176,6 +176,7 @@ get_arch() {
 download_pkg() {
 	export pkg_fullname="${pkgname}-${version}-1.${rpm_pkg_suffix}.rpm"
 	export pkg_tmp_filename=$(mktemp_safe .rpm "/tmp/${pkg_fullname}")
+	echo "downloading ${download_url}/${pkg_fullname}"
 	(set -x; $curl ${download_url}/${pkg_fullname} > ${pkg_tmp_filename})
 	file_sha1=$(sha1sum ${pkg_tmp_filename} | cut -d " " -f 1)
 	sha1_name="$arch"_rpm_sha1

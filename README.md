@@ -59,6 +59,11 @@ tar -xzf openshift-install*.tar.gz
 ./openshift-install create cluster --log-level debug
 ```
 
+#### Login as kubeadmin
+```
+oc login -u kubeadmin https://api.okd.laceworkdemo.com:6443
+```
+
 #### Configure SSL
 ```
 cd $HOME
@@ -91,6 +96,15 @@ oc create secret tls api-certs --cert=${CERTDIR}/fullchain.pem --key=${CERTDIR}/
 oc patch apiserver cluster --type merge --patch="{\"spec\": {\"servingCerts\": {\"namedCertificates\": [ { \"names\": [  \"$LE_API\"  ], \"servingCertificate\": {\"name\": \"api-certs\" }}]}}}"
 ```
 
+#### Expose external registry and pull ubi-datacollector image
+```
+oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge
+
+HOST=$(oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}')
+podman login -u $(oc whoami) -p $(oc whoami -t) $HOST
+podman pull $HOST/lacework/ubi-datacollector
+```
+
 ## Install Lacework Agent Data Collector
 ```
 oc new-project lacework --display-name="Lacework" --description="Project and namespace for the Lacework Data Collector Agent"
@@ -103,7 +117,7 @@ oc import-image registry.access.redhat.com/ubi8-minimal:latest --from=registry.a
 
 #oc import-image lacework/ubi-datacollector:latest --from=quay.io/themrjoshuap/ubi-datacollector:latest --scheduled --confirm
 
-oc new-build https://github.com/mrjoshuap/ubi-datacollector.git --strategy=docker --to=lacework/ubi-datacollector:latest
+oc new-build https://github.com/mrjoshuap/ubi-datacollector.git\#main --strategy=docker --to=lacework/ubi-datacollector:latest
 oc set triggers bc/ubi-datacollector --auto
 oc set triggers bc/ubi-datacollector --from-image="lacework/ubi8-minimal:latest"
 
