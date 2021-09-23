@@ -118,11 +118,16 @@ oc get all -n lacework
 
 oc start-build ubi-datacollector --follow
 oc set image ds/lacework-agent datacollector=lacework/ubi-datacollector:latest
+
+curl -X POST https://api.okd.laceworkdemo.com:6443/apis/build.openshift.io/v1/namespaces/lacework/buildconfigs/ubi-datacollector/webhooks/30bb62df102f9a08/generic
+
+curl -H "X-GitHub-Event: push" -H "Content-Type: application/json" -X POST --data-binary @payload.json https://api.okd.laceworkdemo.com:6443/apis/build.openshift.io/v1/namespaces/lacework/buildconfigs/ubi-datacollector/webhooks/a19b758f2fbde404/github
+
+
+
 ```
 
-#
-
-## To Do ... Wish List
+## To Do ... Notes ... Wish List
 
 * Build an operator
 * Add to operator hub and red hat marketplace
@@ -134,3 +139,5 @@ oc set image ds/lacework-agent datacollector=lacework/ubi-datacollector:latest
 * need proper healthchecks -- see healthcheck.sh
 * update agent install / service for podman
 * need to incorporate installation with other build processes -- see install.sh
+* need to expose the internal registry and test container scanning
+* buildconfigs need to specify the ref if not using a "master" branch -- ie main is default
