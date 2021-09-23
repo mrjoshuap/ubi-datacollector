@@ -132,3 +132,4 @@ oc set image ds/lacework-agent datacollector=lacework/ubi-datacollector:latest
 * no more logs -- need to use stdout
 * vuln scanning seems not to work with Red Hat Linux CoreOS (yes, i know)
 * need proper healthchecks (i hacked a sample to check the actual process since i had access to the node's processes)
+* update agent install / service for podman
