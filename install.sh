@@ -183,7 +183,7 @@ download_pkg() {
 	sha1_name="$arch"_rpm_sha1
 	exp_sha1=$(eval "echo \${$sha1_name}")
 
-	if [ "${exp_sha1} " != " " && "${exp_sha1}" != "${file_sha1}" ]; then
+	if [ "${exp_sha1} " != " " ] && [ "${exp_sha1}" != "${file_sha1}" ]; then
 		echo "----------------------------------"
 		echo "Download sha1 checksum failed, [${exp_sha1}] [${file_sha1}]"
 		echo "----------------------------------"
