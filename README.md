@@ -105,7 +105,7 @@ oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"
 
 HOST=$(oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}')
 podman login -u $(oc whoami) -p $(oc whoami -t) $HOST
-podman pull $HOST/lacework/ubi-datacollector
+podman pull $HOST/lacework/datacollector-ubi8
 ```
 
 ## Install Lacework Agent Data Collector
@@ -140,11 +140,12 @@ oc set triggers ds/lacework-agent --from-image='lacework/datacollector-ubi8:late
 oc get all -n lacework
 
 oc start-build ubi-datacollector --follow
-oc set image ds/lacework-agent datacollector=lacework/datacollector-ubi8:latest
 
 curl -X POST https://api.ocp4.laceworkdemo.com:6443/apis/build.openshift.io/v1/namespaces/lacework/buildconfigs/ubi-datacollector/webhooks/r8a7Uq9mgzTkFS1GG_NC/generic
 
 curl -H "X-GitHub-Event: push" -H "Content-Type: application/json" -X POST --data-binary @payload.json https://api.ocp4.laceworkdemo.com:6443/apis/build.openshift.io/v1/namespaces/lacework/buildconfigs/ubi-datacollector/webhooks/FO_i2s7aSgdXgxNhnKn5/github
+
+oc set image ds/lacework-agent datacollector=lacework/datacollector-ubi8:latest
 ```
 
 ## To Do ... Notes ... Wish List
