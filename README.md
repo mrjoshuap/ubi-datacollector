@@ -41,9 +41,9 @@ eval $(crc oc-env)
 oc login -u kubeadmin -p 'lacework$' https://api.crc.testing:6443
 ```
 
-### Setup OKD
+### Setup OCP4 / OKD4
 
-#### Installation
+#### Installation - OKD
 
 1. Download the latest OpenShift Client CLI (don't worry about the installer)
 2. Install the correct OKD installer using `oc`
@@ -76,6 +76,9 @@ echo "Finding our OCP domains"
 export LE_API=$(oc whoami --show-server | cut -f 2 -d ':' | cut -f 3 -d '/' | sed 's/-api././')
 export LE_WILDCARD=$(oc get ingresscontroller default -n openshift-ingress-operator -o jsonpath='{.status.domain}')
 
+echo "LE_API=$LE_API"
+echo "LE_WILDCARD=$LE_WILDCARD"
+
 echo "Registering new let's encrypt account"
 ./acme.sh/acme.sh --register-account -m joshua.preston@lacework.net
 
@@ -86,7 +89,7 @@ echo "Requesting certificate for $LE_WILDCARD"
 echo "Retrieving certificates"
 export CERTDIR=$HOME/certificates
 mkdir -p ${CERTDIR}
-./acme.sh --install-cert -d ${LE_API} -d "*.${LE_WILDCARD}" --cert-file ${CERTDIR}/cert.pem --key-file ${CERTDIR}/key.pem --fullchain-file ${CERTDIR}/fullchain.pem --ca-file ${CERTDIR}/ca.cer
+./acme.sh/acme.sh --install-cert -d ${LE_API} -d "*.${LE_WILDCARD}" --cert-file ${CERTDIR}/cert.pem --key-file ${CERTDIR}/key.pem --fullchain-file ${CERTDIR}/fullchain.pem --ca-file ${CERTDIR}/ca.cer
 
 echo "Installing certificates into OpenShift"
 echo "NOTE: The certificate swap in OCP/OKD may take up to 30 minutes depending on cluster size"
@@ -117,7 +120,7 @@ oc import-image registry.access.redhat.com/ubi8-minimal:latest --from=registry.a
 
 #oc import-image lacework/ubi-datacollector:latest --from=quay.io/themrjoshuap/ubi-datacollector:latest --scheduled --confirm
 
-oc new-build https://github.com/mrjoshuap/ubi-datacollector.git\#main --strategy=docker --to=lacework/ubi-datacollector:latest
+oc new-build https://github.com/mrjoshuap/ubi-datacollector.git\#main --strategy=docker --to=lacework/datacollector-ubi8:latest
 oc set triggers bc/ubi-datacollector --auto
 oc set triggers bc/ubi-datacollector --from-image="lacework/ubi8-minimal:latest"
 
@@ -132,19 +135,16 @@ oc set image-lookup --all
 oc set image-lookup daemonset/lacework-agent
 
 oc set triggers ds/lacework-agent --auto
-oc set triggers ds/lacework-agent --from-image='lacework/ubi-datacollector:latest' --containers="datacollector" 
+oc set triggers ds/lacework-agent --from-image='lacework/datacollector-ubi8:latest' --containers="datacollector" 
 
 oc get all -n lacework
 
 oc start-build ubi-datacollector --follow
-oc set image ds/lacework-agent datacollector=lacework/ubi-datacollector:latest
+oc set image ds/lacework-agent datacollector=lacework/datacollector-ubi8:latest
 
-curl -X POST https://api.okd.laceworkdemo.com:6443/apis/build.openshift.io/v1/namespaces/lacework/buildconfigs/ubi-datacollector/webhooks/30bb62df102f9a08/generic
+curl -X POST https://api.ocp4.laceworkdemo.com:6443/apis/build.openshift.io/v1/namespaces/lacework/buildconfigs/ubi-datacollector/webhooks/r8a7Uq9mgzTkFS1GG_NC/generic
 
-curl -H "X-GitHub-Event: push" -H "Content-Type: application/json" -X POST --data-binary @payload.json https://api.okd.laceworkdemo.com:6443/apis/build.openshift.io/v1/namespaces/lacework/buildconfigs/ubi-datacollector/webhooks/a19b758f2fbde404/github
-
-
-
+curl -H "X-GitHub-Event: push" -H "Content-Type: application/json" -X POST --data-binary @payload.json https://api.ocp4.laceworkdemo.com:6443/apis/build.openshift.io/v1/namespaces/lacework/buildconfigs/ubi-datacollector/webhooks/FO_i2s7aSgdXgxNhnKn5/github
 ```
 
 ## To Do ... Notes ... Wish List

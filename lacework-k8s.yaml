@@ -18,8 +18,11 @@ spec:
         name: datacollector
     spec:
       containers:
-      - image: lacework/ubi-datacollector:latest
+      - image: lacework/datacollector-ubi8:latest
         imagePullPolicy: Always
+        env:
+          - name: LaceworkLogStdout
+            value: "yes"
         livenessProbe:
           exec:
             command:
