@@ -1,0 +1,16 @@
+sudo podman stop datacollector
+sudo podman rm datacollector
+
+sudo podman run --name datacollector --detach \
+    --net=host --pid=host --privileged \
+    --memory=512m --cpus=0.1 \
+    --volume /:/laceworkfim:ro \
+    --volume /etc/lacework/config.json:/var/lib/lacework/config/config.json \
+    --volume /var/log:/var/log \
+    --volume /var/run:/var/run \
+    --volume /etc/passwd:/etc/passwd:ro \
+    --volume /etc/group:/etc/group:ro \
+    --env=LaceworkLogStdout=yes \
+    --health-cmd=/usr/local/bin/healthcheck.sh \
+    --restart=on-failure \
+    quay.io/themrjoshuap/ubi-datacollector:latest
