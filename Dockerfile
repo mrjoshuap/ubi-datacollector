@@ -41,15 +41,6 @@ LABEL name="Lacework Agent" \
 ### add licenses to this directory
 COPY licenses /licenses
 
-### Add your package needs here
-RUN INSTALL_PKGS="httpd" && \
-
-### Add necessary Red Hat repos here
-    microdnf --enablerepo=ubi-7-server --enablerepo=ubi-7-optional \
-      install --nodocs ${INSTALL_PKGS} && \
-    microdnf remove ${INSTALL_PKGS} && \
-    microdnf clean all
-
 USER root
 
 COPY healthcheck.sh /usr/local/bin/healthcheck.sh
