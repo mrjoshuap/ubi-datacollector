@@ -36,7 +36,7 @@ LABEL name="Lacework Agent" \
       io.openshift.non-scalable="true" \
       io.openshift.min-memory="512Mi" \
       io.openshift.min-cpu="0.1" \
-      io.k8s.description="Lacework is a continuous monitoring system that collects and monitors metadata of all the processes associated with a network activity." \
+      io.k8s.description="Lacework is a continuous monitoring system that collects and monitors metadata of all the processes associated with a network activity."
 
 ### add licenses to this directory
 COPY licenses /licenses
