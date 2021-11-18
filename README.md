@@ -1,17 +1,16 @@
 # ubi-datacollector
 
-[![Docker Repository on Quay](https://quay.io/repository/themrjoshuap/ubi-datacollector/status "Docker Repository on Quay")](https://quay.io/repository/themrjoshuap/ubi-datacollector)
-
 ## About
-This is the Lacework Agent Data Collector delivered as a UBI based image.  It is intended primarily to provide support for Kubernetes distributions that prefer UBI as compared to Alpine, chiefly OpenShift / OKD and Rancher.  Additionally, Red Hat support will strongly recommend you utilize UBI based images as they are able to provide support for mutual customers.
+These are instructions on getting the Lacework Agent installed on OpenShift 4.x / OKD 4.x clusters.
 
 ## Getting Started
 
-The three ways I'm planning on testing:
+The ways I've tested:
 
 1. OpenShift Code Ready Containers (CRC) -- All-In-One OpenShift for developer laptop use cases
 2. OKD 4.7 on AWS - the open source distribution of OpenShift; is a minor version behind OCP
 3. OCP 4.8 on AWS - using NFR subscriptions (when available)
+4. Red Hat OpenShift on Amazon (ROSA) - for functionality and validation
 
 ### Setup Code Ready Containers
 Note, the CRC is quite heavy.  If you need the monitoring and telemetry, as I do, expect to dedicate at least 14 GiB of memory (a value of 14336) for core functionality. Increased workloads will require more memory...
@@ -41,9 +40,9 @@ eval $(crc oc-env)
 oc login -u kubeadmin -p 'lacework$' https://api.crc.testing:6443
 ```
 
-### Setup OCP4 / OKD4
+### Setup OCP4 / OKD4 / ROSA
 
-#### Installation - OKD
+#### Installation - OCP4 / OKD4 / ROSA
 
 1. Download the latest OpenShift Client CLI (don't worry about the installer)
 2. Install the correct OKD installer using `oc`
@@ -99,13 +98,13 @@ oc create secret tls api-certs --cert=${CERTDIR}/fullchain.pem --key=${CERTDIR}/
 oc patch apiserver cluster --type merge --patch="{\"spec\": {\"servingCerts\": {\"namedCertificates\": [ { \"names\": [  \"$LE_API\"  ], \"servingCertificate\": {\"name\": \"api-certs\" }}]}}}"
 ```
 
-#### Expose external registry and pull ubi-datacollector image
+#### Expose external registry and pull an internal image
 ```
 oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge
 
 HOST=$(oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}')
 podman login -u $(oc whoami) -p $(oc whoami -t) $HOST
-podman pull $HOST/lacework/datacollector-ubi8
+podman pull $HOST/lacework/datacollector
 ```
 
 ## Install Lacework Agent Data Collector
@@ -116,13 +115,7 @@ oc create serviceaccount lacework -n lacework
 
 oc adm policy add-scc-to-user privileged -z lacework
 
-oc import-image registry.access.redhat.com/ubi8-minimal:latest --from=registry.access.redhat.com/ubi8-minimal:latest --scheduled --confirm
-
-#oc import-image lacework/ubi-datacollector:latest --from=quay.io/themrjoshuap/ubi-datacollector:latest --scheduled --confirm
-
-oc new-build https://github.com/mrjoshuap/ubi-datacollector.git\#main --strategy=docker --to=lacework/datacollector-ubi8:latest
-oc set triggers bc/ubi-datacollector --auto
-oc set triggers bc/ubi-datacollector --from-image="lacework/ubi8-minimal:latest"
+oc import-image lacework/datacollector:latest --from=docker.io/lacework/datacollector:latest --scheduled --confirm
 
 cp example_config.json config.json
 vi config.json
@@ -135,17 +128,11 @@ oc set image-lookup --all
 oc set image-lookup daemonset/lacework-agent
 
 oc set triggers ds/lacework-agent --auto
-oc set triggers ds/lacework-agent --from-image='lacework/datacollector-ubi8:latest' --containers="datacollector" 
+oc set triggers ds/lacework-agent --from-image='docker.io/lacework/datacollector:latest' --containers="lacework" 
 
 oc get all -n lacework
 
-oc start-build ubi-datacollector --follow
-
-curl -X POST https://api.ocp4.laceworkdemo.com:6443/apis/build.openshift.io/v1/namespaces/lacework/buildconfigs/ubi-datacollector/webhooks/r8a7Uq9mgzTkFS1GG_NC/generic
-
-curl -H "X-GitHub-Event: push" -H "Content-Type: application/json" -X POST --data-binary @payload.json https://api.ocp4.laceworkdemo.com:6443/apis/build.openshift.io/v1/namespaces/lacework/buildconfigs/ubi-datacollector/webhooks/FO_i2s7aSgdXgxNhnKn5/github
-
-oc set image ds/lacework-agent datacollector=lacework/datacollector-ubi8:latest
+oc set image ds/lacework-agent lacework=lacework/datacollector:latest
 ```
 
 ## To Do ... Notes ... Wish List
